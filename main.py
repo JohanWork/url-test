@@ -4,11 +4,23 @@ import requests
 import argparse
 import yaml
 import logging
+import multiprocessing
+from multiprocessing import Pool
 files = []
 types = ['\.py', '\.md']
-cwd = os.getcwd()
+CWD = os.getcwd()
+
 # TODO check a regex that is fine to steal?
 urls_regex = """(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"""
+
+# TODO fix multiprocessing
+
+
+def multi_processing():
+    num_cores = multiprocessing.cpu_count()
+    print(f"num_cores={num_cores}")
+    pool = Pool(num_cores)
+    pool.map(generate_one, generate_target_buildings())
 
 
 def read_configs(config_file: str):
@@ -35,7 +47,7 @@ def extract_urls(file: str, rows: list, dirs: str) -> list:
 
 def get_urls():
     output = []
-    for root, dirs, files in os.walk(cwd):
+    for root, dirs, files in os.walk(CWD):
         for file in files:
             if re.search("|".join(types), file):
                 # TODO fix this
@@ -63,13 +75,24 @@ def extract_404(urls):
     return errors
 
 
-def main(crash: bool = False, config_path: str = ''):
+def get_urls_extract_404(crash: bool, config_path: str):
     configs = read_configs(config_path)
     urls = get_urls()
     errors = extract_404(urls)
+    return errors
+
+
+def main(crash: bool = False, directory: str = None, config_path: str = '',):
+    if directory:
+        CWD = directory
+
+    errors = get_urls_extract_404(crash, config_path)
     if crash and len(errors) > 0:
         raise Exception("The directory contains broken links")
-    return errors
+    for error in errors:
+        logging.warning(error)
+    if crash and errors:
+        raise Exception('There are broken urls in the directory')
 
 
 if __name__ == "__main__":
