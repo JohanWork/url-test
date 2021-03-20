@@ -8,19 +8,12 @@ import multiprocessing
 from multiprocessing import Pool
 files = []
 types = ['\.py', '\.md']
+types = ['\.md']
+
 CWD = os.getcwd()
 
 # TODO check a regex that is fine to steal?
 urls_regex = """(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"""
-
-# TODO fix multiprocessing
-
-
-def multi_processing():
-    num_cores = multiprocessing.cpu_count()
-    print(f"num_cores={num_cores}")
-    pool = Pool(num_cores)
-    pool.map(generate_one, generate_target_buildings())
 
 
 def read_configs(config_file: str):
@@ -62,31 +55,34 @@ def get_urls():
     return output
 
 
-def extract_404(urls):
+def extract_404(url):
+    # TODO if it crahses we should take that as an error link
     errors = {}
-    for url in urls:
-        try:
-            r = requests.get(url.get('url'))
-            if r.status_code == 404:
-                errors[url.get('url')] = url
-        except:
-            errors[url.get('url')] = url
-
-    return errors
+    try:
+        response = requests.get(url.get('url'))
+        if response.status_code == 404:
+            errors['output'] = url
+        response.close()
+    except:
+        errors['output'] = url
+    return errors.get('output')
 
 
 def get_urls_extract_404(crash: bool, config_path: str):
     configs = read_configs(config_path)
     urls = get_urls()
-    errors = extract_404(urls)
-    return errors
+    return urls
 
 
 def main(crash: bool = False, directory: str = None, config_path: str = '',):
     if directory:
         CWD = directory
 
-    errors = get_urls_extract_404(crash, config_path)
+    num_cores = multiprocessing.cpu_count()
+    print(f"num_cores={num_cores}")
+    pool = Pool(num_cores)
+    errors = pool.map(extract_404, get_urls_extract_404(crash, config_path))
+    errors = [error for error in errors if error != None]
     if crash and len(errors) > 0:
         raise Exception("The directory contains broken links")
     for error in errors:
