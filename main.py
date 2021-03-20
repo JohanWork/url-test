@@ -4,6 +4,7 @@ import requests
 import argparse
 import yaml
 import logging
+import time
 import multiprocessing
 from multiprocessing import Pool
 from typing import List
@@ -63,6 +64,7 @@ def get_urls() -> List[str]:
     Returns:
         List[str]: [description]
     """
+    start_time = time.time()
     output = []
     for root, dirs, files in os.walk(CWD):
         for file in files:
@@ -73,6 +75,7 @@ def get_urls() -> List[str]:
                 urls = extract_urls(file, lines, file_path)
                 if len(urls) > 0:
                     output.extend(urls)
+    print(f"The time to get all urls: {time.time() - start_time}")
     return output
 
 
@@ -90,6 +93,7 @@ def extract_404(url: str):
 
 
 def main(crash: bool, directory: str, config_path: str):
+    start_time  = time.time()
     if directory:
         CWD = directory
     #[TODO] fix use configs or defaults for all things
@@ -112,3 +116,4 @@ def main(crash: bool, directory: str, config_path: str):
         logging.warning(error)
     if crash and errors:
         raise Exception('There are broken urls in the directory')
+    print(f"Total run time: {time.time()- start_time}")
