@@ -18,6 +18,7 @@ pip install -e ~/Documents/Johan/pytesturl
 - Paralize the job to speed it up
 - Add ability to pick if it shoudl throw a error os simply logg out
 - Clean up the history of the branch so it start from empty!
+- Rename
 
 ## Broken test link
 
