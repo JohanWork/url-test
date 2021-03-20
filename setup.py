@@ -4,15 +4,15 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pytesturl",
-    version="0.0.1",
+    name="url-test",
+    version="0.0.2",
     author="Johan Hansson",
     author_email="johan.eric.hansson@gmail.com",
     description="This package check urls in the directory and sub directories",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/JohanWork/pytesturl",
-    scripts=['pytesturl'],
+    url="https://github.com/JohanWork/url-test",
+    scripts=['url-test'],
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
