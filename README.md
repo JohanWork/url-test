@@ -1,11 +1,11 @@
-# pytesturl
+# url-test
 
 This libary scanes a directory for all urls and test if any of them is invalid
 
 ### Local Installment
 
 pip install -e ''
-pip install -e ~/Documents/Johan/pytesturl
+pip install -e ~/Documents/Johan/url-test
 
 ## Links
 
