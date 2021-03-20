@@ -4,13 +4,14 @@ import logging
 from main import main
 
 if __name__ == "__main__":
-
     arg_parser = argparse.ArgumentParser(
         description='check all links in spec file types in the directory')
     arg_parser.add_argument('-crash', '--crash', required=False,
-                            help='crash if any broken links are found')
+                            help='crash if any broken links are found',
+                            default=False)
     arg_parser.add_argument('-config_path', '--config_path', required=False,
-                            help='path to config file')
+                            help='path to config file',
+                            default="config.yaml")
     arg_parser.add_argument('-directory', '--directory', required=False,
                             help='directory for pytest url to check')
     args = vars(arg_parser.parse_args())
