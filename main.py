@@ -4,6 +4,7 @@ import requests
 import argparse
 import yaml
 import logging
+import time
 import multiprocessing
 from multiprocessing import Pool
 from typing import List
@@ -35,11 +36,10 @@ def read_configs(config_file: str) -> dict:
         logging.warning('config file could not be found, using defaults')
 
 
-def extract_urls(file: str, rows: list, file_path: str) -> List[str]:
+def extract_urls(rows: list, file_path: str) -> List[str]:
     """Function to find url:s in a file
 
     Args:
-        file (str): The file name
         rows (list): The number of lines in the file
         file_path (str): The complete file path
 
@@ -52,7 +52,6 @@ def extract_urls(file: str, rows: list, file_path: str) -> List[str]:
             output.append({
                 'url': re.search(urls_regex, row).group(0), 
                 'row': index, 
-                'file': file, 
                 'file_path': file_path})
     return output
 
@@ -64,51 +63,46 @@ def get_urls() -> List[str]:
         List[str]: [description]
     """
     output = []
+    start_time = time.time()
     for root, dirs, files in os.walk(CWD):
         for file in files:
             if re.search("|".join(types), file):
                 file_path = root + '/' + file
-                with open(file_path, 'r') as f:
-                    lines = f.readlines()
-                urls = extract_urls(file, lines, file_path)
-                if len(urls) > 0:
-                    output.extend(urls)
+                output.append(file_path)
+    print(f"Time to get all files: {time.time()- start_time}")
     return output
 
 
-def extract_404(url: str):
-    # TODO if it crahses we should take that as an error link
-    errors = {}
-    try:
-        response = requests.get(url.get('url'))
-        if response.status_code == 404:
-            errors['output'] = url
-        response.close()
-    except:
-        errors['output'] = url
-    return errors.get('output')
+def extract_404(file_path: str):
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+    urls = extract_urls(lines, file_path)
+    output = []
+    for url in urls: 
+        try:
+            response = requests.get(url.get('url'))
+            if response.status_code == 404:
+                output.append(url)
+            response.close()
+        except: # TODO if it crash we should take that as an error link
+            output.append(url)
+    return output
 
 
 def main(crash: bool, directory: str, config_path: str):
+    start_time = time.time()
     if directory:
         CWD = directory
     #[TODO] fix use configs or defaults for all things
     # replace the had code types for example. 
     #configs = read_configs(config_path)
-    num_cores = multiprocessing.cpu_count()
-    print(f"nbr of cores={num_cores}")
+    num_cores = max(multiprocessing.cpu_count()-1, 1)
+    print(f"Nbr of cores used: {num_cores}")
     pool = Pool(num_cores)
-    # Currently we are first getting all the URL:s
-    # Then we are testing them, 
-    # I think that the testing is super fast but finding the stuff is not
-    # I think we should move around the parallism to a lower layer instead. 
-    # list_of_things = []
-    # Get all the links then run a function for each of them
-    # This will make it work fine. 
-
     errors = pool.map(extract_404, get_urls())
-    errors = [error for error in errors if error != None]
+    errors = [error for error in errors if len(error)>0]
     for error in errors:
         logging.warning(error)
     if crash and errors:
         raise Exception('There are broken urls in the directory')
+    print(f"Total run time: {time.time() - start_time }")
