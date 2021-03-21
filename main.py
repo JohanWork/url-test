@@ -9,6 +9,8 @@ import multiprocessing
 from multiprocessing import Pool
 from typing import List
 
+requests.adapters.DEFAULT_RETRIES = 1
+
 global types
 types = ['\.md']
 global ignore_files
@@ -119,7 +121,6 @@ def main(crash: bool, directory: str, config_path: str):
     # list_of_things = []
     # Get all the links then run a function for each of them
     # This will make it work fine.
-
     errors = pool.map(extract_404, get_urls())
     errors = [error for error in errors if error != None]
     for error in errors:
