@@ -9,9 +9,13 @@ import multiprocessing
 from multiprocessing import Pool
 from typing import List
 
-files = []
-types = ['\.py', '\.md']
+global types
 types = ['\.md']
+global ignore_files
+ignore_files = []
+global ignore_urls
+ignore_urls = []
+
 
 CWD = os.getcwd()
 
@@ -31,7 +35,13 @@ def read_configs(config_file: str) -> dict:
     print(config_file)
     if os.path.isfile(config_file):
         with open(config_file, 'r') as f:
-            return  yaml.load(f, Loader=yaml.FullLoader)
+            data = yaml.load(f, Loader=yaml.FullLoader)
+        if 'types' in data:
+            types = data['types']
+        if 'ignore_files' in data:
+            ignore_files = data['ignore_files']
+        if 'ignore_urls' in data:
+            ignore_urls = data['ignore_urls']
     else:
         logging.warning('config file could not be found, using defaults')
 
@@ -51,9 +61,9 @@ def extract_urls(file: str, rows: list, file_path: str) -> List[str]:
     for index, row in enumerate(rows):
         if re.search(urls_regex, row):
             output.append({
-                'url': re.search(urls_regex, row).group(0), 
-                'row': index, 
-                'file': file, 
+                'url': re.search(urls_regex, row).group(0),
+                'row': index,
+                'file': file,
                 'file_path': file_path})
     return output
 
@@ -93,22 +103,22 @@ def extract_404(url: str):
 
 
 def main(crash: bool, directory: str, config_path: str):
-    start_time  = time.time()
+    start_time = time.time()
     if directory:
         CWD = directory
-    #[TODO] fix use configs or defaults for all things
-    # replace the had code types for example. 
+    # [TODO] fix use configs or defaults for all things
+    # replace the had code types for example.
     #configs = read_configs(config_path)
     num_cores = multiprocessing.cpu_count()
     print(f"nbr of cores={num_cores}")
     pool = Pool(num_cores)
     # Currently we are first getting all the URL:s
-    # Then we are testing them, 
+    # Then we are testing them,
     # I think that the testing is super fast but finding the stuff is not
-    # I think we should move around the parallism to a lower layer instead. 
+    # I think we should move around the parallism to a lower layer instead.
     # list_of_things = []
     # Get all the links then run a function for each of them
-    # This will make it work fine. 
+    # This will make it work fine.
 
     errors = pool.map(extract_404, get_urls())
     errors = [error for error in errors if error != None]
