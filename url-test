@@ -12,7 +12,5 @@ if __name__ == "__main__":
     arg_parser.add_argument('-config_path', '--config_path', required=False,
                             help='path to config file',
                             default="config.yaml")
-    arg_parser.add_argument('-directory', '--directory', required=False,
-                            help='directory for pytest url to check')
     args = vars(arg_parser.parse_args())
-    main(args['crash'], args['directory'], args['config_path'])
+    main(args['crash'], args['config_path'])

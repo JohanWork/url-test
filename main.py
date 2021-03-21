@@ -11,12 +11,12 @@ from typing import List
 
 requests.adapters.DEFAULT_RETRIES = 1
 
-global types
-types = ['\.md']
-global ignore_files
-ignore_files = []
-global ignore_urls
-ignore_urls = []
+global file_types
+file_types = ['\.md']
+global whitelisted_files
+whitelisted_files = []
+global whitelisted_urls
+whitelisted_urls = []
 
 
 CWD = os.getcwd()
@@ -34,16 +34,15 @@ def read_configs(config_file: str) -> dict:
     Returns:
         dict: The configurations in the form of a dict
     """
-    print(config_file)
     if os.path.isfile(config_file):
         with open(config_file, 'r') as f:
             data = yaml.load(f, Loader=yaml.FullLoader)
-        if 'types' in data:
-            types = data['types']
-        if 'ignore_files' in data:
-            ignore_files = data['ignore_files']
-        if 'ignore_urls' in data:
-            ignore_urls = data['ignore_urls']
+        if 'file_types' in data:
+            file_types = data['file_types']
+        if 'whitelisted_files' in data:
+            whitelisted_files = data['whitelisted_files']
+        if 'whitelisted_urls' in data:
+            whitelisted_urls = data['whitelisted_urls']
     else:
         logging.warning('config file could not be found, using defaults')
 
@@ -80,7 +79,7 @@ def get_urls() -> List[str]:
     output = []
     for root, dirs, files in os.walk(CWD):
         for file in files:
-            if re.search("|".join(types), file):
+            if file not in whitelisted_files and re.search("|".join(file_types), file):
                 file_path = root + '/' + file
                 with open(file_path, 'r') as f:
                     lines = f.readlines()
@@ -104,13 +103,11 @@ def extract_404(url: str):
     return errors.get('output')
 
 
-def main(crash: bool, directory: str, config_path: str):
+def main(crash: bool, config_path: str):
     start_time = time.time()
-    if directory:
-        CWD = directory
     # [TODO] fix use configs or defaults for all things
     # replace the had code types for example.
-    #configs = read_configs(config_path)
+    configs = read_configs(config_path)
     num_cores = multiprocessing.cpu_count()
     print(f"nbr of cores={num_cores}")
     pool = Pool(num_cores)

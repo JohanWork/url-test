@@ -1,7 +1,5 @@
-erros_codes:
-  - 404
-white_listed_addresses:
-  - huey
-  - dewey
-white_listed_files:
-  - testfile.py
+file_types:
+  - \.md
+
+whitelisted_files:
+  - README.md
