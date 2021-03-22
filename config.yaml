@@ -1,0 +1,5 @@
+file_types:
+  - \.md
+
+whitelisted_files:
+  - README.md
