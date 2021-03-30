@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="url-test",
-    version="0.0.3.3",
+    version="0.0.3.4",
     author="Johan Hansson",
     author_email="johan.eric.hansson@gmail.com",
     description="This package check urls in the directory and sub directories",
