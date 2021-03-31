@@ -11,18 +11,9 @@ from typing import List
 
 requests.adapters.DEFAULT_RETRIES = 1
 
-global file_types
-file_types = ['\.md']
-global whitelisted_files
-whitelisted_files = []
-global whitelisted_urls
-whitelisted_urls = []
-
-
 CWD = os.getcwd()
 
 # TODO check a regex that is fine to steal?
-urls_regex = """(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"""
 
 
 def read_configs(config_file: str) -> dict:
@@ -34,7 +25,11 @@ def read_configs(config_file: str) -> dict:
     Returns:
         dict: The configurations in the form of a dict
     """
-    if os.path.isfile(config_file):
+    file_types = ['\.md']
+    whitelisted_files = []
+    whitelisted_urls = []
+    url_regex = """(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"""
+    if config_file and os.path.isfile(config_file):
         with open(config_file, 'r') as f:
             data = yaml.load(f, Loader=yaml.FullLoader)
         if 'file_types' in data:
@@ -43,11 +38,15 @@ def read_configs(config_file: str) -> dict:
             whitelisted_files = data['whitelisted_files']
         if 'whitelisted_urls' in data:
             whitelisted_urls = data['whitelisted_urls']
+        if 'url_regex' in data:
+            url_regex = data['url_regex']
+
     else:
         logging.warning('config file could not be found, using defaults')
+    return {'file_types': file_types, 'whitelisted_files': whitelisted_files, 'whitelisted_urls': whitelisted_urls, 'url_regex': url_regex}
 
 
-def extract_urls(file: str, rows: list, file_path: str) -> List[str]:
+def extract_urls(file: str, rows: list, file_path: str, urls_regex: str) -> List[str]:
     """Function to find url:s in a file
 
     Args:
@@ -69,7 +68,7 @@ def extract_urls(file: str, rows: list, file_path: str) -> List[str]:
     return output
 
 
-def get_urls() -> List[str]:
+def get_urls(configs: dict) -> List[str]:
     """Function to find
 
     Returns:
@@ -77,13 +76,16 @@ def get_urls() -> List[str]:
     """
     start_time = time.time()
     output = []
+    whitelisted_files = configs.get('whitelisted_files')
+    urls_regex = configs.get('url_regex')
+    file_types = configs.get('file_types')
     for root, dirs, files in os.walk(CWD):
         for file in files:
             if file not in whitelisted_files and re.search("|".join(file_types), file):
                 file_path = root + '/' + file
                 with open(file_path, 'r') as f:
                     lines = f.readlines()
-                urls = extract_urls(file, lines, file_path)
+                urls = extract_urls(file, lines, file_path, urls_regex)
                 if len(urls) > 0:
                     output.extend(urls)
     print(f"The time to get all urls: {time.time() - start_time}")
@@ -118,7 +120,7 @@ def main(crash: bool, config_path: str):
     # list_of_things = []
     # Get all the links then run a function for each of them
     # This will make it work fine.
-    errors = pool.map(extract_404, get_urls())
+    errors = pool.map(extract_404, get_urls(configs))
     errors = [error for error in errors if error != None]
     for error in errors:
         logging.warning(error)

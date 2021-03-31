@@ -10,7 +10,6 @@ if __name__ == "__main__":
                             help='crash if any broken links are found',
                             default=False)
     arg_parser.add_argument('-config_path', '--config_path', required=False,
-                            help='path to config file',
-                            default="config.yaml")
+                            help='path to config file')
     args = vars(arg_parser.parse_args())
     main(args['crash'], args['config_path'])
