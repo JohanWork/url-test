@@ -34,6 +34,8 @@ def read_configs(config_file: str) -> dict:
             data = yaml.load(f, Loader=yaml.FullLoader)
         if 'file_types' in data:
             file_types = data['file_types']
+            logging.info('file_types')
+            logging.info(file_types)
         if 'whitelisted_files' in data:
             whitelisted_files = data['whitelisted_files']
         if 'whitelisted_urls' in data:
@@ -60,8 +62,10 @@ def extract_urls(file: str, rows: list, file_path: str, urls_regex: str) -> List
     output = []
     for index, row in enumerate(rows):
         if re.search(urls_regex, row):
+            url = re.search(urls_regex, row).group(0)
+            logging.info('address found: {}'.format(url))
             output.append({
-                'url': re.search(urls_regex, row).group(0),
+                'url': url,
                 'row': index,
                 'file': file,
                 'file_path': file_path})
@@ -98,6 +102,7 @@ def extract_404(url: str):
     try:
         response = requests.get(url.get('url'))
         if response.status_code == 404:
+            logging.info('404 on url {}'.format(url))
             errors['output'] = url
         response.close()
     except:
@@ -105,10 +110,13 @@ def extract_404(url: str):
     return errors.get('output')
 
 
-def main(crash: bool, config_path: str):
+def main(crash: bool, config_path: str, verbose: bool):
     start_time = time.time()
     # [TODO] fix use configs or defaults for all things
     # replace the had code types for example.
+    if verbose:
+        logging.basicConfig(level=logging.INFO)
+
     configs = read_configs(config_path)
     num_cores = multiprocessing.cpu_count()
     print(f"nbr of cores={num_cores}")

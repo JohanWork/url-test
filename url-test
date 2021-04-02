@@ -11,5 +11,8 @@ if __name__ == "__main__":
                             default=False)
     arg_parser.add_argument('-config_path', '--config_path', required=False,
                             help='path to config file')
+    arg_parser.add_argument('-verbose', '--verbose', required=False,
+                            help='verbose if true more infromation will be printed out',
+                            default=False)
     args = vars(arg_parser.parse_args())
-    main(args['crash'], args['config_path'])
+    main(args['crash'], args['config_path'], args['verbose'])
