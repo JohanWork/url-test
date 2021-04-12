@@ -1,6 +1,6 @@
 # url-test
 
-url-test is a Python module for scaning all url in a project distributed under the MIT license.
+url-test is a Python module for scaning all url in a project and test that they are valid and not returning an 404, distributed under the MIT license.
 
 The project was started in 2021 by Johan Hansson and Niklas Hansson.
 
