@@ -64,6 +64,7 @@ whitelisted_urls:
 
 ```
 
+
 ## Github action
 
 A prebuild github action of the library can be found [here](https://github.com/JohanWork/url-test-github-action).
